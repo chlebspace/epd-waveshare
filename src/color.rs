@@ -25,31 +25,34 @@ impl OutOfColorRangeParseError {
 
 /// Only for the Black/White-Displays
 // TODO : 'color' is not a good name for black and white, rename it to BiColor/BWColor ?
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub enum Color {
     /// Black color
     Black,
     /// White color
+    #[default]
     White,
 }
 
 /// Only for the Black/White/Color-Displays
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub enum TriColor {
     /// Black color
     Black,
     /// White color
+    #[default]
     White,
     /// Chromatic color
     Chromatic,
 }
 
 /// For the 7 Color Displays
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub enum OctColor {
     /// Black Color
     Black = 0x00,
     /// White Color
+    #[default]
     White = 0x01,
     /// Green Color
     Green = 0x02,
@@ -313,6 +316,13 @@ impl From<embedded_graphics_core::pixelcolor::raw::RawU1> for Color {
 }
 
 #[cfg(feature = "graphics")]
+impl From<Color> for embedded_graphics_core::pixelcolor::raw::RawU1 {
+    fn from(color: Color) -> Self {
+        Self::new(color.get_bit_value())
+    }
+}
+
+#[cfg(feature = "graphics")]
 impl PixelColor for Color {
     type Raw = embedded_graphics_core::pixelcolor::raw::RawU1;
 }
@@ -351,8 +361,68 @@ impl From<Color> for embedded_graphics_core::pixelcolor::Rgb888 {
     fn from(color: Color) -> Self {
         use embedded_graphics_core::pixelcolor::RgbColor;
         match color {
-            Color::Black => embedded_graphics_core::pixelcolor::Rgb888::BLACK,
-            Color::White => embedded_graphics_core::pixelcolor::Rgb888::WHITE,
+            Color::Black => Self::BLACK,
+            Color::White => Self::WHITE,
+        }
+    }
+}
+
+#[cfg(feature = "graphics")]
+impl From<embedded_graphics_core::pixelcolor::Rgb565> for Color {
+    fn from(rgb: embedded_graphics_core::pixelcolor::Rgb565) -> Self {
+        use embedded_graphics_core::pixelcolor::RgbColor;
+        if rgb == RgbColor::BLACK {
+            Color::Black
+        } else if rgb == RgbColor::WHITE {
+            Color::White
+        } else {
+            // choose closest color
+            if (rgb.r() as u16 + rgb.g() as u16 + rgb.b() as u16) > 255 * 3 / 2 {
+                Color::White
+            } else {
+                Color::Black
+            }
+        }
+    }
+}
+
+#[cfg(feature = "graphics")]
+impl From<Color> for embedded_graphics_core::pixelcolor::Rgb565 {
+    fn from(color: Color) -> Self {
+        use embedded_graphics_core::pixelcolor::RgbColor;
+        match color {
+            Color::Black => Self::BLACK,
+            Color::White => Self::WHITE,
+        }
+    }
+}
+
+#[cfg(feature = "graphics")]
+impl From<embedded_graphics_core::pixelcolor::Rgb555> for Color {
+    fn from(rgb: embedded_graphics_core::pixelcolor::Rgb555) -> Self {
+        use embedded_graphics_core::pixelcolor::RgbColor;
+        if rgb == RgbColor::BLACK {
+            Color::Black
+        } else if rgb == RgbColor::WHITE {
+            Color::White
+        } else {
+            // choose closest color
+            if (rgb.r() as u16 + rgb.g() as u16 + rgb.b() as u16) > 255 * 3 / 2 {
+                Color::White
+            } else {
+                Color::Black
+            }
+        }
+    }
+}
+
+#[cfg(feature = "graphics")]
+impl From<Color> for embedded_graphics_core::pixelcolor::Rgb555 {
+    fn from(color: Color) -> Self {
+        use embedded_graphics_core::pixelcolor::RgbColor;
+        match color {
+            Color::Black => Self::BLACK,
+            Color::White => Self::WHITE,
         }
     }
 }
